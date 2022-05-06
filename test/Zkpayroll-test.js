@@ -37,6 +37,7 @@ describe('Zkpayroll-test', function () {
 
     })
 
+    
     it('batchPay', async function () {
 		let data = {
 			tokenAddrs: [
@@ -71,6 +72,40 @@ describe('Zkpayroll-test', function () {
 		}
     })
 
+
+    it('batchPay max test', async function () {
+		let data = {
+			tokenAddrs: [
+				
+			],
+			toAddrs: [
+				
+			],
+			amounts: [
+				
+			]
+		}
+
+		//the max is 293, with gas limit 30000000
+		for (let i=0; i<293; i++) {
+			data.tokenAddrs.push(usdt.address)
+			data.toAddrs.push(accounts[4].address)
+			data.amounts.push(m(1, 18))
+		}
+
+		await usdt.approve(zkpayroll.address, m(1000, 18))
+        console.log('step 1 approve done')
+		
+		await zkpayroll.batchPay(data.tokenAddrs, data.toAddrs, data.amounts)
+        console.log('step 2 batchPay done')
+		
+		for (i=0; i<5; i++) {
+			console.log('accounts[' + i + ']',
+				'usdt:', d(await usdt.balanceOf(accounts[i].address), 18), 
+				'busd:', d(await busd.balanceOf(accounts[i].address), 18)
+			)
+		}
+    })
 
 
     function getAbi(jsonPath) {
