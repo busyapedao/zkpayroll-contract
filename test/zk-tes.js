@@ -102,7 +102,7 @@ describe('Zkpayroll-test', function () {
     //     console.log('verifyProof', success)
     // })
 
-    it('createZkBox', async function () {
+    it('recharge', async function () {
         let psw = 'abc123'
         let input = stringToHex(psw)
         console.log('input', input)
@@ -121,16 +121,15 @@ describe('Zkpayroll-test', function () {
             await usdt.approve(zkpayroll.address, m(100, 18))
             console.log('step 1 approve done')
 
-            await zkpayroll.createZkBox(data.publicSignals[0], usdt.address, m(100, 18))
-            console.log('step 2 batchPay done')
+            await zkpayroll.recharge(data.publicSignals[0], usdt.address, m(100, 18))
+            console.log('step 2 recharge done')
 
         } else {
             console.log("Invalid proof")
         }
     })
 
-
-    it('openZkBox', async function () {
+    it('withdraw round1', async function () {
         let psw = 'abc123'
         let input = stringToHex(psw)
         console.log('input', input)
@@ -166,8 +165,8 @@ describe('Zkpayroll-test', function () {
             ]
             let pswHash = BigNumber.from(data.publicSignals[0]).toHexString()
             
-            await zkpayroll.connect(accounts[1]).openZkBox(a, b, c, pswHash)
-            console.log('openZkBox done')
+            await zkpayroll.connect(accounts[1]).withdraw(a, b, c, pswHash, usdt.address, m(30, 18), accounts[2].address)
+            console.log('withdraw done')
     
             for (i=0; i<5; i++) {
                 console.log('accounts[' + i + ']',
@@ -179,8 +178,58 @@ describe('Zkpayroll-test', function () {
         } else {
             console.log("Invalid proof")
         }
+    })
 
-        
+
+    it('withdraw round2', async function () {
+        let psw = 'abc123'
+        let input = stringToHex(psw)
+        console.log('input', input)
+
+        let data = await snarkjs.groth16.fullProve({in:input}, "./zk/main2_js/main2.wasm", "./zk/circuit_final.zkey")
+
+        // console.log("pswHash: ", data.publicSignals[0])
+        console.log(JSON.stringify(data))
+
+        const vKey = JSON.parse(fs.readFileSync("./zk/verification_key.json"))
+        const res = await snarkjs.groth16.verify(vKey, data.publicSignals, data.proof)
+
+        if (res === true) {
+            console.log("Verification OK")
+
+            let a = [
+                BigNumber.from(data.proof.pi_a[0]).toHexString(),
+                BigNumber.from(data.proof.pi_a[1]).toHexString()
+            ]
+            let b = [
+                [
+                    BigNumber.from(data.proof.pi_b[0][1]).toHexString(),
+                    BigNumber.from(data.proof.pi_b[0][0]).toHexString()
+                ],
+                [
+                    BigNumber.from(data.proof.pi_b[1][1]).toHexString(),
+                    BigNumber.from(data.proof.pi_b[1][0]).toHexString()
+                ]
+            ]
+            let c = [
+                BigNumber.from(data.proof.pi_c[0]).toHexString(),
+                BigNumber.from(data.proof.pi_c[1]).toHexString()
+            ]
+            let pswHash = BigNumber.from(data.publicSignals[0]).toHexString()
+            
+            await zkpayroll.connect(accounts[1]).withdraw(a, b, c, pswHash, usdt.address, m(50, 18), accounts[3].address)
+            console.log('withdraw done')
+    
+            for (i=0; i<5; i++) {
+                console.log('accounts[' + i + ']',
+                    'usdt:', d(await usdt.balanceOf(accounts[i].address), 18), 
+                    'busd:', d(await busd.balanceOf(accounts[i].address), 18)
+                )
+            }
+
+        } else {
+            console.log("Invalid proof")
+        }
     })
 
 

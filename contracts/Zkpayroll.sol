@@ -10,11 +10,9 @@ contract Zkpayroll is Context {
     
     Verifier verifier = new Verifier();
 
-    struct ZkBox {
-        address tokenAddr;
-        uint amount;
-    }
-    mapping(uint => ZkBox) public hash2zkbox;
+    mapping(uint => mapping(address => uint)) public hash2token2amount;
+
+    mapping(uint => bool) public usedProof;
 
     constructor() {
         
@@ -33,16 +31,19 @@ contract Zkpayroll is Context {
         return verifier.verifyProof(a, b, c, input);
     }
 
-    function createZkBox(uint pswHash, address tokenAddr, uint amount) public {
+    function recharge(uint pswHash, address tokenAddr, uint amount) public {
         IERC20(tokenAddr).transferFrom(_msgSender(), address(this), amount);
-        hash2zkbox[pswHash] = ZkBox(tokenAddr, amount);
+        hash2token2amount[pswHash][tokenAddr] += amount;
     }
 
-    function openZkBox(uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint pswHash) public {
-        require(verifier.verifyProof(a, b, c, [pswHash]), "Zkpayroll::openZkBox: verifyProof fail");
+    function withdraw(uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint pswHash, address tokenAddr, uint amount, address to) public {
+        require(!usedProof[a[0]], "Zkpayroll::withdraw: proof used");
+        require(verifier.verifyProof(a, b, c, [pswHash]), "Zkpayroll::withdraw: verifyProof fail");
         
-        ZkBox storage box = hash2zkbox[pswHash];
-        IERC20(box.tokenAddr).transfer(_msgSender(), box.amount);
+        hash2token2amount[pswHash][tokenAddr] -= amount;
+        usedProof[a[0]] = true;
+
+        IERC20(tokenAddr).transfer(to, amount);
     }
 
 }
