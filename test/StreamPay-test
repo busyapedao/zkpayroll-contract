@@ -32,16 +32,21 @@ describe('StreamPay-test', function () {
 
         let blockHeight = await provider.getBlockNumber()
         let block = await provider.getBlock(blockHeight)
-        console.log('block', block)
+        // console.log('block', block)
 
-        let startTime = block.timestamp + 5;
+        let startTime = block.timestamp - 1;
         let stopTime = startTime + 100;
 		await streamPay.createStream(accounts[1].address, m(100, 18), usdt.address, startTime, stopTime)
         console.log('step 2 createStream done')
 
-        let streamId = n(await streamPay.streamCount());
-        let stream = await streamPay.getStream(streamId)
-        console.log('stream', stream)
+        // let streamId = n(await streamPay.streamCount());
+        // let stream = await streamPay.getStream(streamId)
+        // console.log('stream', stream)
+        
+        let streams = await streamPay.getUserStreams(accounts[0].address, 1, 2)
+        console.log('stream', streams)
+        streams = await streamPay.getUserStreams(accounts[1].address, 1, 2)
+        console.log('stream', streams)
 
         await print()
     })
@@ -70,6 +75,11 @@ describe('StreamPay-test', function () {
         let streamId = 1;
 		await streamPay.cancelStream(streamId)
         console.log('cancelStream done')
+
+        let streams = await streamPay.getUserStreams(accounts[0].address, 1, 2)
+        console.log('stream', streams)
+        streams = await streamPay.getUserStreams(accounts[1].address, 1, 2)
+        console.log('stream', streams)
 
         await print()
     })

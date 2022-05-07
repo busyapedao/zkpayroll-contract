@@ -46,7 +46,7 @@ describe('BatchPay-test', function () {
 
         let blockHeight = await provider.getBlockNumber()
         let block = await provider.getBlock(blockHeight)
-        console.log('block', block)
+        // console.log('block', block)
 
         let startTime = block.timestamp + 5;
         let stopTime = startTime + 100;
@@ -76,11 +76,14 @@ describe('BatchPay-test', function () {
         )
         console.log('step 2 batchStreamPay done')
 
-        let streamCount = n(await streamPay.streamCount());
-        for (let streamId=1; streamId<=streamCount; streamId++) {
-            let stream = await streamPay.getStream(streamId)
-            console.log('stream', stream)
-        }
+        // let streamCount = n(await streamPay.streamCount());
+        // for (let streamId=1; streamId<=streamCount; streamId++) {
+        //     let stream = await streamPay.getStream(streamId)
+        //     console.log('stream', stream)
+        // }
+
+        let streams = await streamPay.getUserStreams(accounts[0].address, 1, 3)
+        console.log('stream', streams)
 
         await print()
     })
@@ -95,6 +98,9 @@ describe('BatchPay-test', function () {
 
             await streamPay.withdrawFromStream(streamId, m(2, 18))
             console.log('withdrawFromStream done streamId=', streamId)
+
+            let streams = await streamPay.getUserStreams(accounts[0].address, 1, 3)
+            console.log('stream', streams)
         }
 
         await print()
@@ -110,6 +116,9 @@ describe('BatchPay-test', function () {
     
             await streamPay.cancelStream(streamId)
             console.log('cancelStream done')
+
+            let streams = await streamPay.getUserStreams(accounts[0].address, 1, 3)
+            console.log('stream', streams)
         }
 
         await print()

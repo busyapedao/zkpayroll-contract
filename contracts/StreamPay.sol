@@ -27,7 +27,11 @@ contract StreamPay is Context, IStreamPay, ReentrancyGuard {
 
     mapping(uint => Stream) public streams;
 
-    // mapping(address => mapping(uint => Stream)) public user2index2stream;
+    // for frontend use
+    // index start from 1, user2index2streamId[address][0] return lastIndex(length)
+    mapping(address => mapping(uint => uint)) public user2index2streamId;
+    // streamId2indexes[streamId] return [index of senderStreams, index of recipientStreams]
+    mapping(uint => uint[]) internal streamId2indexes;
 
 
     modifier onlySenderOrRecipient(uint streamId) {
@@ -69,6 +73,17 @@ contract StreamPay is Context, IStreamPay, ReentrancyGuard {
         stopTime = streams[streamId].stopTime;
         remainingBalance = streams[streamId].remainingBalance;
         ratePerSecond = streams[streamId].ratePerSecond;
+    }
+
+
+    function getUserStreams(address user, uint startIndex, uint endIndex) public view returns (Stream[] memory result) {
+        uint length = endIndex - startIndex + 1;
+        result = new Stream[](length);
+        for (uint i = 0; i<length; i++) {
+            uint index = startIndex + i;
+            uint streamId = user2index2streamId[user][index];
+            result[i] = streams[streamId];
+        }
     }
 
 
@@ -126,6 +141,16 @@ contract StreamPay is Context, IStreamPay, ReentrancyGuard {
             true
         );
 
+        uint count1 = user2index2streamId[sender][0];
+        user2index2streamId[sender][++count1] = streamId;
+        user2index2streamId[sender][0] = count1;
+
+        uint count2 = user2index2streamId[recipient][0];
+        user2index2streamId[recipient][++count2] = streamId;
+        user2index2streamId[recipient][0] = count2;
+
+        streamId2indexes[streamId] = [count1, count2];
+
         IERC20(tokenAddress).safeTransferFrom(sender, address(this), deposit);
         emit CreateStream(streamId, sender, recipient, deposit, tokenAddress, startTime, stopTime);
         return streamId;
@@ -175,7 +200,23 @@ contract StreamPay is Context, IStreamPay, ReentrancyGuard {
 
         stream.remainingBalance -= amount;
 
-        if (stream.remainingBalance == 0) delete streams[streamId];
+        if (stream.remainingBalance == 0) {
+            uint[] memory indexes = streamId2indexes[streamId];
+
+            uint lastIndex = user2index2streamId[stream.sender][0];
+            user2index2streamId[stream.sender][indexes[0]] = user2index2streamId[stream.sender][lastIndex];
+            delete user2index2streamId[stream.sender][lastIndex];
+            user2index2streamId[stream.sender][0] = --lastIndex;
+
+            lastIndex = user2index2streamId[stream.recipient][0];
+            user2index2streamId[stream.recipient][indexes[1]] = user2index2streamId[stream.recipient][lastIndex];
+            delete user2index2streamId[stream.recipient][lastIndex];
+            user2index2streamId[stream.recipient][0] = --lastIndex;
+
+            delete streamId2indexes[streamId];
+
+            delete streams[streamId];
+        }
 
         IERC20(stream.tokenAddress).safeTransfer(stream.recipient, amount);
         emit WithdrawFromStream(streamId, stream.recipient, amount);
@@ -195,7 +236,23 @@ contract StreamPay is Context, IStreamPay, ReentrancyGuard {
         uint senderBalance = balanceOf(streamId, stream.sender);
         uint recipientBalance = balanceOf(streamId, stream.recipient);
 
+        // delete
+        uint[] memory indexes = streamId2indexes[streamId];
+
+        uint lastIndex = user2index2streamId[stream.sender][0];
+        user2index2streamId[stream.sender][indexes[0]] = user2index2streamId[stream.sender][lastIndex];
+        delete user2index2streamId[stream.sender][lastIndex];
+        user2index2streamId[stream.sender][0] = --lastIndex;
+
+        lastIndex = user2index2streamId[stream.recipient][0];
+        user2index2streamId[stream.recipient][indexes[1]] = user2index2streamId[stream.recipient][lastIndex];
+        delete user2index2streamId[stream.recipient][lastIndex];
+        user2index2streamId[stream.recipient][0] = --lastIndex;
+
+        delete streamId2indexes[streamId];
+
         delete streams[streamId];
+
 
         IERC20 token = IERC20(stream.tokenAddress);
         if (recipientBalance > 0) token.safeTransfer(stream.recipient, recipientBalance);
