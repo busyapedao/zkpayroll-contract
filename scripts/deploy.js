@@ -6,10 +6,20 @@ const { BigNumber } = require('ethers')
 async function main() {
 	const accounts = await hre.ethers.getSigners()
 
-	// const Zkpayroll = await ethers.getContractFactory('Zkpayroll')
-	// const zkpayroll = await Zkpayroll.deploy()
-	// await zkpayroll.deployed()
-	// console.log('zkpayroll deployed:', zkpayroll.address)
+	const ZkPayroll = await ethers.getContractFactory('ZkPayroll')
+	const zkPayroll = await ZkPayroll.deploy()
+	await zkPayroll.deployed()
+	console.log('zkPayroll deployed:', zkPayroll.address)
+
+	const StreamPay = await ethers.getContractFactory('StreamPay')
+	const streamPay = await StreamPay.deploy()
+	await streamPay.deployed()
+	console.log('streamPay deployed:', streamPay.address)
+
+	const ZkPay = await ethers.getContractFactory('ZkPay')
+	const zkPay = await ZkPay.deploy()
+	await zkPay.deployed()
+	console.log('zkPay deployed:', zkPay.address)
 
 	// const MockERC20 = await ethers.getContractFactory('MockERC20')
 	// const usdt = await MockERC20.deploy('MockUSDT', 'USDT')

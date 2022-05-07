@@ -2,10 +2,10 @@ const { BigNumber } = require('ethers')
 const snarkjs = require("snarkjs")
 const fs = require("fs")
 
-describe('Zkpayroll-test', function () {
+describe('ZkPay-test', function () {
     let accounts
     let provider
-    let zkpayroll
+    let zkPay
     let usdt
     let busd
 
@@ -19,7 +19,6 @@ describe('Zkpayroll-test', function () {
         usdt = await MockERC20.deploy('MockUSDT', 'USDT')
         await usdt.deployed()
         console.log('usdt deployed:', usdt.address)
-		
 		await usdt.mint(accounts[0].address, m(1000, 18))
         console.log('usdt mint to accounts[0]', d(await usdt.balanceOf(accounts[0].address), 18))
 
@@ -27,15 +26,13 @@ describe('Zkpayroll-test', function () {
         busd = await MockERC20.deploy('MockBUSD', 'BUSD')
         await busd.deployed()
         console.log('busd deployed:', busd.address)
-		
 		await busd.mint(accounts[0].address, m(1000, 18))
         console.log('busd mint to accounts[0]', d(await busd.balanceOf(accounts[0].address), 18))
 
-
-        const Zkpayroll = await ethers.getContractFactory('Zkpayroll')
-        zkpayroll = await Zkpayroll.deploy()
-        await zkpayroll.deployed()
-        console.log('zkpayroll deployed:', zkpayroll.address)
+        const ZkPay = await ethers.getContractFactory('ZkPay')
+        zkPay = await ZkPay.deploy()
+        await zkPay.deployed()
+        console.log('zkPay deployed:', zkPay.address)
     })
 
 
@@ -97,7 +94,7 @@ describe('Zkpayroll-test', function () {
     //     ]
 
     //     console.log(a, b, c, input)
-    //     let success = await zkpayroll.verifyProof(a, b, c, input)
+    //     let success = await zkPay.verifyProof(a, b, c, input)
 
     //     console.log('verifyProof', success)
     // })
@@ -118,10 +115,10 @@ describe('Zkpayroll-test', function () {
         if (res === true) {
             console.log("Verification OK")
 
-            await usdt.approve(zkpayroll.address, m(100, 18))
+            await usdt.approve(zkPay.address, m(100, 18))
             console.log('step 1 approve done')
 
-            await zkpayroll.recharge(data.publicSignals[0], usdt.address, m(100, 18))
+            await zkPay.recharge(data.publicSignals[0], usdt.address, m(100, 18))
             console.log('step 2 recharge done')
 
         } else {
@@ -165,7 +162,7 @@ describe('Zkpayroll-test', function () {
             ]
             let pswHash = BigNumber.from(data.publicSignals[0]).toHexString()
             
-            await zkpayroll.connect(accounts[1]).withdraw(a, b, c, pswHash, usdt.address, m(30, 18), accounts[2].address)
+            await zkPay.connect(accounts[1]).withdraw(a, b, c, pswHash, usdt.address, m(30, 18), accounts[2].address)
             console.log('withdraw done')
     
             for (i=0; i<5; i++) {
@@ -217,7 +214,7 @@ describe('Zkpayroll-test', function () {
             ]
             let pswHash = BigNumber.from(data.publicSignals[0]).toHexString()
             
-            await zkpayroll.connect(accounts[1]).withdraw(a, b, c, pswHash, usdt.address, m(50, 18), accounts[3].address)
+            await zkPay.connect(accounts[1]).withdraw(a, b, c, pswHash, usdt.address, m(50, 18), accounts[3].address)
             console.log('withdraw done')
     
             for (i=0; i<5; i++) {

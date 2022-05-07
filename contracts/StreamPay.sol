@@ -5,10 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
-import "./interfaces/IERC1620.sol";
+import "./interfaces/IStreamPay.sol";
 import "hardhat/console.sol";
 
-contract StreamPay is Context, IERC1620, ReentrancyGuard {
+contract StreamPay is Context, IStreamPay, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint public streamCount = 0;
@@ -26,6 +26,8 @@ contract StreamPay is Context, IERC1620, ReentrancyGuard {
     }
 
     mapping(uint => Stream) public streams;
+
+    // mapping(address => mapping(uint => Stream)) public user2index2stream;
 
 
     modifier onlySenderOrRecipient(uint streamId) {
@@ -83,12 +85,21 @@ contract StreamPay is Context, IERC1620, ReentrancyGuard {
         override
         returns (uint)
     {
+        return createStreamWithSender(_msgSender(), recipient, deposit, tokenAddress, startTime, stopTime);
+    }
+
+
+    function createStreamWithSender(address sender, address recipient, uint deposit, address tokenAddress, uint startTime, uint stopTime)
+        public
+        override
+        returns (uint)
+    {
         require(recipient != address(0), "StreamPay::createStream: stream to the zero address");
         require(recipient != address(this), "StreamPay::createStream: stream to the contract itself");
-        require(recipient != _msgSender(), "StreamPay::createStream: stream to the caller");
+        require(recipient != sender, "StreamPay::createStream: stream to the sender");
         require(deposit > 0, "StreamPay::createStream: deposit is zero");
         // console.log("StreamPay::createStream", startTime, block.timestamp);
-        require(startTime >= block.timestamp, "StreamPay::createStream: start time should be after block.timestamp");
+        // require(startTime >= block.timestamp, "StreamPay::createStream: start time should be after block.timestamp");
         require(stopTime > startTime, "StreamPay::createStream: stop time should be after the start time");
 
         uint duration = stopTime - startTime;
@@ -110,13 +121,13 @@ contract StreamPay is Context, IERC1620, ReentrancyGuard {
             startTime,
             stopTime,
             recipient,
-            _msgSender(),
+            sender,
             tokenAddress,
             true
         );
 
-        IERC20(tokenAddress).safeTransferFrom(_msgSender(), address(this), deposit);
-        emit CreateStream(streamId, _msgSender(), recipient, deposit, tokenAddress, startTime, stopTime);
+        IERC20(tokenAddress).safeTransferFrom(sender, address(this), deposit);
+        emit CreateStream(streamId, sender, recipient, deposit, tokenAddress, startTime, stopTime);
         return streamId;
     }
 

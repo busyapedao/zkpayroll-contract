@@ -1,6 +1,10 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+
+/**
+* @notice https://github.com/ethereum/EIPs/issues/1620
+*/
 interface IERC1620 {
     /**
      * @notice Emits when a stream is successfully created.

@@ -1,9 +1,10 @@
 const { BigNumber } = require('ethers')
 
-describe('Zkpayroll-test', function () {
+describe('BatchPay-test', function () {
     let accounts
     let provider
-    let zkpayroll
+    let streamPay
+    let zkPayroll
     let usdt
     let busd
 
@@ -17,23 +18,24 @@ describe('Zkpayroll-test', function () {
         usdt = await MockERC20.deploy('MockUSDT', 'USDT')
         await usdt.deployed()
         console.log('usdt deployed:', usdt.address)
-		
 		await usdt.mint(accounts[0].address, m(1000, 18))
         console.log('usdt mint to accounts[0]', d(await usdt.balanceOf(accounts[0].address), 18))
-
 
         busd = await MockERC20.deploy('MockBUSD', 'BUSD')
         await busd.deployed()
         console.log('busd deployed:', busd.address)
-		
 		await busd.mint(accounts[0].address, m(1000, 18))
         console.log('busd mint to accounts[0]', d(await busd.balanceOf(accounts[0].address), 18))
 
+        const StreamPay = await ethers.getContractFactory('StreamPay')
+        streamPay = await StreamPay.deploy()
+        await streamPay.deployed()
+        console.log('streamPay deployed:', streamPay.address)
 
-        const Zkpayroll = await ethers.getContractFactory('Zkpayroll')
-        zkpayroll = await Zkpayroll.deploy()
-        await zkpayroll.deployed()
-        console.log('zkpayroll deployed:', zkpayroll.address)
+        const ZkPayroll = await ethers.getContractFactory('ZkPayroll')
+        zkPayroll = await ZkPayroll.deploy(streamPay.address)
+        await zkPayroll.deployed()
+        console.log('zkPayroll deployed:', zkPayroll.address)
 
     })
 
@@ -57,11 +59,11 @@ describe('Zkpayroll-test', function () {
 			]
 		}
 
-		await usdt.approve(zkpayroll.address, m(10, 18))
-		await busd.approve(zkpayroll.address, m(50, 18))
+		await usdt.approve(zkPayroll.address, m(10, 18))
+		await busd.approve(zkPayroll.address, m(50, 18))
         console.log('step 1 approve done')
 		
-		await zkpayroll.batchPay(data.tokenAddrs, data.toAddrs, data.amounts)
+		await zkPayroll.batchPay(data.tokenAddrs, data.toAddrs, data.amounts)
         console.log('step 2 batchPay done')
 		
 		for (let i=0; i<4; i++) {
@@ -93,10 +95,10 @@ describe('Zkpayroll-test', function () {
 			data.amounts.push(m(1, 18))
 		}
 
-		await usdt.approve(zkpayroll.address, m(1000, 18))
+		await usdt.approve(zkPayroll.address, m(1000, 18))
         console.log('step 1 approve done')
 		
-		await zkpayroll.batchPay(data.tokenAddrs, data.toAddrs, data.amounts)
+		await zkPayroll.batchPay(data.tokenAddrs, data.toAddrs, data.amounts)
         console.log('step 2 batchPay done')
 		
 		for (i=0; i<5; i++) {
