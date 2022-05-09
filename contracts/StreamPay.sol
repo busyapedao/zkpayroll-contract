@@ -13,7 +13,8 @@ contract StreamPay is Context, IStreamPay, ReentrancyGuard {
 
     uint public streamCount = 0;
 
-    struct Stream { 
+    struct Stream {
+        uint streamId;
         uint deposit;
         uint ratePerSecond;
         uint remainingBalance;
@@ -78,11 +79,26 @@ contract StreamPay is Context, IStreamPay, ReentrancyGuard {
 
     function getUserStreams(address user, uint startIndex, uint endIndex) public view returns (Stream[] memory result) {
         uint length = endIndex - startIndex + 1;
-        result = new Stream[](length);
-        for (uint i = 0; i<length; i++) {
+        Stream[] memory tempArr = new Stream[](length);
+        uint i = 0;
+        for (i = 0; i<length; i++) {
             uint index = startIndex + i;
             uint streamId = user2index2streamId[user][index];
-            result[i] = streams[streamId];
+            Stream memory stream = streams[streamId];
+            if (!stream.isEntity) {
+                break;
+            }
+            tempArr[i] = stream;
+        }
+
+        if (i == length) {
+            result = tempArr;
+        } else {
+            length = i;
+            result = new Stream[](i);
+            for (i = 0; i<length; i++) {
+                result[i] = tempArr[i];
+            }
         }
     }
 
@@ -130,6 +146,7 @@ contract StreamPay is Context, IStreamPay, ReentrancyGuard {
         /* Create and store the stream object. */
         uint streamId = ++streamCount;
         streams[streamId] = Stream(
+            streamId,
             deposit,
             ratePerSecond,
             deposit,
