@@ -1,9 +1,11 @@
 const { BigNumber } = require('ethers')
+const zkPayHelp = require('../zk/zkPayHelp.js')
 
 describe('BatchPay-test', function () {
     let accounts
     let provider
     let streamPay
+    let zkPay
     let zkPayroll
     let usdt
     let busd
@@ -31,21 +33,38 @@ describe('BatchPay-test', function () {
         streamPay = await StreamPay.deploy()
         await streamPay.deployed()
         console.log('streamPay deployed:', streamPay.address)
+        
+        const ZkPay = await ethers.getContractFactory('ZkPay')
+        zkPay = await ZkPay.deploy()
+        await zkPay.deployed()
+        console.log('zkPay deployed:', zkPay.address)
 
         const ZkPayroll = await ethers.getContractFactory('ZkPayroll')
-        zkPayroll = await ZkPayroll.deploy(streamPay.address)
+        zkPayroll = await ZkPayroll.deploy(streamPay.address, zkPay.address)
         await zkPayroll.deployed()
         console.log('zkPayroll deployed:', zkPayroll.address)
 
     })
 
     
-    it('batchPay', async function () {
+    it('register', async function () {
+        for (let i=1; i<=3; i++) {
+            let {pswHash, allHash, proof} = await zkPayHelp.generateProof('abc123', '0x00', '0')
+            let boxhash = zkPayHelp.getBoxhash(pswHash, accounts[i].address)
+            // console.log('pswHash', pswHash, 'boxhash', boxhash)
+
+            await zkPay.connect(accounts[i]).register(boxhash, proof, pswHash, allHash)
+            console.log('accounts %s register done', i)
+        }
+    })
+
+
+    it('batchZkPay', async function () {
 		let data = {
 			tokenAddrs: [
 				usdt.address,
-				busd.address,
-				busd.address
+				usdt.address,
+				usdt.address
 			],
 			toAddrs: [
 				accounts[1].address,
@@ -59,55 +78,37 @@ describe('BatchPay-test', function () {
 			]
 		}
 
-		await usdt.approve(zkPayroll.address, m(10, 18))
-		await busd.approve(zkPayroll.address, m(50, 18))
+		await usdt.approve(zkPay.address, m(60, 18))
         console.log('step 1 approve done')
 		
-		await zkPayroll.batchPay(data.tokenAddrs, data.toAddrs, data.amounts)
-        console.log('step 2 batchPay done')
+		await zkPayroll.batchZkPay(data.tokenAddrs, data.toAddrs, data.amounts)
+        console.log('step 2 batchZkPay done')
 		
-		for (let i=0; i<4; i++) {
-			console.log('accounts[' + i + ']',
-				'usdt:', d(await usdt.balanceOf(accounts[i].address), 18), 
-				'busd:', d(await busd.balanceOf(accounts[i].address), 18)
-			)
-		}
+		await print()
     })
 
 
-    it('batchPay max test', async function () {
-		let data = {
-			tokenAddrs: [
-				
-			],
-			toAddrs: [
-				
-			],
-			amounts: [
-				
-			]
-		}
+    it('withdraw', async function () {
+        for (let i=1; i<=3; i++) {
+            let {pswHash, allHash, proof} = await zkPayHelp.generateProof('abc123', usdt.address, s(m(10, 18)))
+            await zkPay.connect(accounts[i]).withdraw(proof, pswHash, usdt.address, m(10, 18), allHash, accounts[4].address)
+            console.log('accounts %s withdraw done', i)
+        }
 
-		//the max is 293, with gas limit 30000000
-		for (let i=0; i<293; i++) {
-			data.tokenAddrs.push(usdt.address)
-			data.toAddrs.push(accounts[4].address)
-			data.amounts.push(m(1, 18))
-		}
+        await print()
+    })
 
-		await usdt.approve(zkPayroll.address, m(1000, 18))
-        console.log('step 1 approve done')
-		
-		await zkPayroll.batchPay(data.tokenAddrs, data.toAddrs, data.amounts)
-        console.log('step 2 batchPay done')
-		
-		for (i=0; i<5; i++) {
-			console.log('accounts[' + i + ']',
-				'usdt:', d(await usdt.balanceOf(accounts[i].address), 18), 
-				'busd:', d(await busd.balanceOf(accounts[i].address), 18)
+
+    async function print() {
+        console.log('')
+        for (let i=0; i<=4; i++) {
+            console.log('accounts[' + i + ']',
+            'usdt:', d(await usdt.balanceOf(accounts[i].address), 18), 
+            'safebox usdt:', d((await zkPay.balanceOf(accounts[i].address, [usdt.address]))[0], 18)
 			)
 		}
-    })
+        console.log('')
+    }
 
 
     function getAbi(jsonPath) {

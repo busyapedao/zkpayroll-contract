@@ -7,6 +7,26 @@ import "./verifier.sol";
 import "hardhat/console.sol";
 
 contract ZkPay is Context {
+
+    event Register(
+        bytes32 indexed boxhash,
+        address indexed user
+    );
+  
+    event Recharge(
+        address indexed sender,
+        address indexed user,
+        address tokenAddr,
+        uint amount
+    );
+
+    event Withdraw(
+        address indexed user,
+        address indexed to,
+        address tokenAddr,
+        uint amount
+    );
+
     Verifier verifier = new Verifier();
 
     struct SafeBox{
@@ -60,11 +80,14 @@ contract ZkPay is Context {
         box.boxhash = boxhash;
         box.user = _msgSender();
 
-        user2boxhash[_msgSender()] = boxhash;
+        user2boxhash[box.user] = boxhash;
+
+        emit Register(boxhash, box.user);
     }
 
 
     function rechargeWithBoxhash(
+        address sender,
         bytes32 boxhash,
         address tokenAddr,
         uint amount
@@ -72,20 +95,21 @@ contract ZkPay is Context {
         SafeBox storage box = boxhash2safebox[boxhash];
         require(box.boxhash != bytes32(0), "ZkPay::rechargeWithBoxhash: safebox not register yet");
 
-        IERC20(tokenAddr).transferFrom(_msgSender(), address(this), amount);
+        IERC20(tokenAddr).transferFrom(sender, address(this), amount);
         box.balance[tokenAddr] += amount;
+
+        emit Recharge(sender, box.user, tokenAddr, amount);
     }
 
 
     function rechargeWithAddress(
-        address user,
+        address sender,
+        address recipient,
         address tokenAddr,
         uint amount
     ) public {
-        bytes32 boxhash = user2boxhash[user];
-        require(boxhash != bytes32(0), "ZkPay::rechargeWithAddress: safebox not register yet");
-
-        rechargeWithBoxhash(boxhash, tokenAddr, amount);
+        bytes32 boxhash = user2boxhash[recipient];
+        rechargeWithBoxhash(sender, boxhash, tokenAddr, amount);
     }
 
 
@@ -119,6 +143,8 @@ contract ZkPay is Context {
         box.balance[tokenAddr] -= amount;
 
         IERC20(tokenAddr).transfer(to, amount);
+
+        emit Withdraw(box.user, to, tokenAddr, amount);
     }
 
 }

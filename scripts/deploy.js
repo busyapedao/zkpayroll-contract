@@ -16,15 +16,15 @@ async function main() {
 	await streamPay.deployed()
 	console.log('streamPay deployed:', streamPay.address)
 
+	const ZkPay = await ethers.getContractFactory('ZkPay')
+	const zkPay = await ZkPay.deploy()
+	await zkPay.deployed()
+	console.log('zkPay deployed:', zkPay.address)
+
 	const ZkPayroll = await ethers.getContractFactory('ZkPayroll')
-	const zkPayroll = await ZkPayroll.deploy(streamPay.address)
+	const zkPayroll = await ZkPayroll.deploy(streamPay.address, zkPay.address)
 	await zkPayroll.deployed()
 	console.log('zkPayroll deployed:', zkPayroll.address)
-
-	// const ZkPay = await ethers.getContractFactory('ZkPay')
-	// const zkPay = await ZkPay.deploy()
-	// await zkPay.deployed()
-	// console.log('zkPay deployed:', zkPay.address)
 
 	// const MockERC20 = await ethers.getContractFactory('MockERC20')
 	// // const usdt = await MockERC20.attach('0x822CA080e094Bf068090554A19Bc3D6618c800B3')

@@ -33,10 +33,20 @@ describe('ZkPay-test', function () {
 		await busd.mint(accounts[1].address, m(1000, 18))
         console.log('busd mint to accounts[1]', d(await busd.balanceOf(accounts[1].address), 18))
 
+        const StreamPay = await ethers.getContractFactory('StreamPay')
+        streamPay = await StreamPay.deploy()
+        await streamPay.deployed()
+        console.log('streamPay deployed:', streamPay.address)
+        
         const ZkPay = await ethers.getContractFactory('ZkPay')
         zkPay = await ZkPay.deploy()
         await zkPay.deployed()
         console.log('zkPay deployed:', zkPay.address)
+
+        const ZkPayroll = await ethers.getContractFactory('ZkPayroll')
+        zkPayroll = await ZkPayroll.deploy(streamPay.address, zkPay.address)
+        await zkPayroll.deployed()
+        console.log('zkPayroll deployed:', zkPayroll.address)
     })
 
 
@@ -86,8 +96,10 @@ describe('ZkPay-test', function () {
         await usdt.connect(accounts[1]).approve(zkPay.address, m(100, 18))
         console.log('step 1 approve done')
 
-        await zkPay.connect(accounts[1]).rechargeWithAddress(accounts[0].address, usdt.address, m(100, 18))
+        await zkPay.connect(accounts[1]).rechargeWithAddress(accounts[1].address, accounts[0].address, usdt.address, m(100, 18))
         console.log('step 2 rechargeWithAddress done')
+
+        await print()
     })
 
 
@@ -126,12 +138,7 @@ describe('ZkPay-test', function () {
             await zkPay.withdraw(proof, pswHash, usdt.address, m(30, 18), allHash, accounts[2].address)
             console.log('withdraw done')
     
-            for (i=0; i<3; i++) {
-                console.log('accounts[' + i + ']',
-                    'usdt:', d(await usdt.balanceOf(accounts[i].address), 18), 
-                    'busd:', d(await busd.balanceOf(accounts[i].address), 18)
-                )
-            }
+            await print()
 
         } else {
             console.log("Invalid proof")
@@ -174,20 +181,24 @@ describe('ZkPay-test', function () {
             await zkPay.withdraw(proof, pswHash, usdt.address, m(30, 18), allHash, accounts[2].address)
             console.log('withdraw done')
     
-            for (i=0; i<3; i++) {
-                console.log('accounts[' + i + ']',
-                    'usdt:', d(await usdt.balanceOf(accounts[i].address), 18), 
-                    'busd:', d(await busd.balanceOf(accounts[i].address), 18)
-                )
-            }
-
-            let bals = await zkPay.balanceOf(accounts[0].address, [usdt.address])
-            console.log('account[0] safebox usdt', d(bals[0], 18))
+            await print()
 
         } else {
             console.log("Invalid proof")
         }
     })
+
+
+    async function print() {
+        console.log('')
+        for (let i=0; i<=4; i++) {
+            console.log('accounts[' + i + ']',
+            'usdt:', d(await usdt.balanceOf(accounts[i].address), 18), 
+            'safebox usdt:', d((await zkPay.balanceOf(accounts[i].address, [usdt.address]))[0], 18)
+			)
+		}
+        console.log('')
+    }
 
 
     function stringToHex(string) {

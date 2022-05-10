@@ -31,9 +31,14 @@ describe('BatchPay-test', function () {
         streamPay = await StreamPay.deploy()
         await streamPay.deployed()
         console.log('streamPay deployed:', streamPay.address)
+        
+        const ZkPay = await ethers.getContractFactory('ZkPay')
+        zkPay = await ZkPay.deploy()
+        await zkPay.deployed()
+        console.log('zkPay deployed:', zkPay.address)
 
         const ZkPayroll = await ethers.getContractFactory('ZkPayroll')
-        zkPayroll = await ZkPayroll.deploy(streamPay.address)
+        zkPayroll = await ZkPayroll.deploy(streamPay.address, zkPay.address)
         await zkPayroll.deployed()
         console.log('zkPayroll deployed:', zkPayroll.address)
 

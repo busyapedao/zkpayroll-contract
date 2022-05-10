@@ -5,10 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
-import "./interfaces/IStreamPay.sol";
+import "./interfaces/IERC1620.sol";
 import "hardhat/console.sol";
 
-contract StreamPay is Context, IStreamPay, ReentrancyGuard {
+contract StreamPay is Context, IERC1620, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint public streamCount = 0;
@@ -122,7 +122,6 @@ contract StreamPay is Context, IStreamPay, ReentrancyGuard {
 
     function createStreamWithSender(address sender, address recipient, uint deposit, address tokenAddress, uint startTime, uint stopTime)
         public
-        override
         returns (uint)
     {
         require(recipient != address(0), "StreamPay::createStream: stream to the zero address");
