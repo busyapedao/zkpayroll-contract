@@ -7,7 +7,9 @@
 <div align="center"><img src="./doc/batchpay.png"></div>
 <p>If there're 100 salaries to pay, it needs 100 Txs, use batchPay, it only need 1 Tx.</p>
 <p>IThis is the basic feature, it can also use to hide the high salary.</p>
+
 ##### e.g. someone's salary is 10000 USDT (so high~), the admin ask him for 5 wallets to receive payment, every transation is no more than 2000 USDT in bathPay, is someone's salary more than 2000 USDT? No one knows.<br>
+<br>
 <br>
 
 ### 2.Stream Pay
@@ -42,20 +44,26 @@
 <li>User need create safebox once (register). After register, user knows the safebox. Maybe without register is better? We're discussing. 
 <li>Only the safebox owner can withdraw. Double safety, if the wallet private key is taken, the safebox is safe. If the safebox password is taken, it's also safe. But if both private key and password are taken, that's so bad.
 </ul>
+<br>
+<br>
 
 ## FAQ
 ### If the project fail or be hacked, is my safebox safe?
 Yes, the safebox is in the contract, and the contract has no owner, it's running forever and no one can modify it.<br>
+<br>
 
 ### How long did zkpayroll developed?
 Since 2022-5-4, for the Dora Hackthon <https://dorahacks.io/buidl/2790>.<br>
+<br>
 
 ### How many Tx can batch into one?
 293 in testing.<br>
+<br>
 
 ### what is the product design base on?
 Stay simple, stay protocol.<br>
 A assets tool as Metamask.<br>
+<br>
 
 ### what is the future plan?
 Saving to earn? I guess.<br>
