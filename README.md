@@ -53,6 +53,10 @@
 <br>
 
 ## FAQ
+### Where is the password store?
+In your mind.<br>
+<br>
+
 ### If the project fail or be hacked, is my safebox safe?
 Yes, the safebox is in the contract, and the contract has no owner, it's running forever and no one can modify it.<br>
 <br>
