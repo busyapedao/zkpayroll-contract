@@ -78,6 +78,9 @@ contract StreamPay is Context, IERC1620, ReentrancyGuard {
 
 
     function getUserStreams(address user, uint startIndex, uint endIndex) public view returns (Stream[] memory result) {
+        require(startIndex >= 1, "StreamPay::getUserStreams: startIndex must >= 1");
+        require(endIndex >= startIndex, "StreamPay::getUserStreams: endIndex must >= startIndex");
+
         uint length = endIndex - startIndex + 1;
         Stream[] memory tempArr = new Stream[](length);
         uint i = 0;
@@ -219,6 +222,7 @@ contract StreamPay is Context, IERC1620, ReentrancyGuard {
         if (stream.remainingBalance == 0) {
             uint[] memory indexes = streamId2indexes[streamId];
 
+            // delete
             uint lastIndex = user2index2streamId[stream.sender][0];
             user2index2streamId[stream.sender][indexes[0]] = user2index2streamId[stream.sender][lastIndex];
             delete user2index2streamId[stream.sender][lastIndex];
@@ -232,6 +236,7 @@ contract StreamPay is Context, IERC1620, ReentrancyGuard {
             delete streamId2indexes[streamId];
 
             delete streams[streamId];
+            // end delete
         }
 
         IERC20(stream.tokenAddress).safeTransfer(stream.recipient, amount);
@@ -268,7 +273,7 @@ contract StreamPay is Context, IERC1620, ReentrancyGuard {
         delete streamId2indexes[streamId];
 
         delete streams[streamId];
-
+        // end delete
 
         IERC20 token = IERC20(stream.tokenAddress);
         if (recipientBalance > 0) token.safeTransfer(stream.recipient, recipientBalance);
