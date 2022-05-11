@@ -42,7 +42,12 @@
 <ul>
 <li>One wallet One safebox. So we can send token to someone's safebox by his wallet address.
 <li>User need create safebox once (register). After register, user knows the safebox. Maybe without register is better? We're discussing. 
-<li>Only the safebox owner can withdraw. Double safety, if the wallet private key is taken, the safebox is safe. If the safebox password is taken, it's also safe. But if both private key and password are taken, that's so bad.
+<li>Only the safebox owner can withdraw. Double safety. 
+    <ul>
+    <li>if the wallet private key is taken, the safebox is safe. 
+    <li>If the safebox password is taken, it's also safe. 
+    <li>But if both private key and password are taken, that's so bad.
+    </ul>
 </ul>
 <br>
 <br>
