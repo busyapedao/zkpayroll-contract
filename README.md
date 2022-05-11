@@ -1,4 +1,4 @@
-# zkpayroll
+<div align="center"><img src="./doc/zknewlogo3.png"></div>
 
 #### USDT and BUSD as salary is being popular, zkpayroll is a tool for salary manage and distribute, with zk-proof, it's privacy and security. The contracts have no owner, that means zkpayroll is running as a protocol, a infrastructure of DAO.
 #### The contracts have 3 features:
@@ -6,7 +6,7 @@
 ### 1.Batch Pay
 <div align="center"><img src="./doc/batchpay.png"></div>
 <p>If there're 100 salaries to pay, it needs 100 Txs, use batchPay, it only need 1 Tx.</p>
-<p>IThis is the basic feature, it can also use to hide the high salary.</p>
+<p>This is the basic feature, it can also use to hide the high salary.</p>
 
 ##### e.g. someone's salary is 10000 USDT (so high~), the admin ask him for 5 wallets to receive payment, every transation is no more than 2000 USDT in bathPay, is someone's salary more than 2000 USDT? No one knows.<br>
 <br>
@@ -69,10 +69,10 @@ Since 2022-5-4, for the Dora Hackthon <https://dorahacks.io/buidl/2790>.<br>
 293 in testing.<br>
 <br>
 
-### what is the product design base on?
+### What is the product design base on?
 Stay simple, stay protocol.<br>
 A assets tool as Metamask.<br>
 <br>
 
-### what is the future plan?
+### What is the future plan?
 Saving to earn? I guess.<br>
