@@ -49,6 +49,8 @@
     <li>both private key and password are taken, that's so bad.
     </ul>
 </ul>
+<p>About Double Spent:<br>
+The used proof was recorded in contract, so double spent is impossible. In other side, the proof is quite different every time, in zk circuit, even though input the same data, it'll output the same, but the proofs are different. So the safebox owner can withdraw the same thing every time.</p>
 <br>
 <br>
 
@@ -75,4 +77,5 @@ A assets tool as Metamask.<br>
 <br>
 
 ### What is the future plan?
+Working to earn? Maybe.<br>
 Saving to earn? I guess.<br>
